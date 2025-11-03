@@ -15,3 +15,9 @@ var choix int
 
 }
 
+if choix == 1 {
+		fmt.Println("\n📋 Liste des contacts :")
+		for i, c := range contacts {
+			fmt.Printf("%d. %s\n", i+1, c)
+		}
+	}
