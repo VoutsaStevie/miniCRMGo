@@ -9,7 +9,9 @@ func main() {
 	fmt.Println("2. ajouter un contact")
 	fmt.Println("4. supprimer un contact")
 	fmt.Println("5. quitter")
-
+var choix int
+	fmt.Print(" Choisis une option : ")
+	fmt.Scanln(&choix)
 
 }
 
