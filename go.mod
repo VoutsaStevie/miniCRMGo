@@ -1,3 +1,3 @@
-module github.com/VoutsaStevie/miniCRMGo.git
+module crm
 
 go 1.25.3
