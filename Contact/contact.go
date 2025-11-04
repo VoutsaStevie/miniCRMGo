@@ -2,13 +2,27 @@ package contact
 
 import "fmt"
 
+// Contact représente une personne dans le CRM
 type Contact struct {
 	Nom   string
 	Email string
 }
 
-var contacts []*Contact
+// Storage définit les opérations CRUD
+type Storage interface {
+	GetAll() []*Contact
+	Add(c *Contact)
+	Update(index int, c *Contact) error
+	Delete(index int) error
+}
 
+// store est une variable globale du type Storage
+var store Storage
+
+// Init permet d’injecter une implémentation concrète (comme Memory)
+func Init(s Storage) {
+	store = s
+}
 
 func Menu() {
 	for {
@@ -24,63 +38,66 @@ func Menu() {
 		fmt.Scanln(&choix)
 
 		switch choix {
-			case 1:
-				AjouterContact()
-			case 2:
-				ListerContacts()
-			case 3:
-				ModifierContact()
-			case 4:
-				SupprimerContact()
-			case 5:
-				fmt.Println("A bientôt !")
-				return
-			default:
-				fmt.Println("Choix invalide")
+		case 1:
+			AjouterContact()
+		case 2:
+			ListerContacts()
+		case 3:
+			ModifierContact()
+		case 4:
+			SupprimerContact()
+		case 5:
+			fmt.Println("A bientôt !")
+			return
+		default:
+			fmt.Println("Choix invalide")
 		}
 	}
 }
 
-func AjouterContact(){
+func AjouterContact() {
 	var nom, email string
 	fmt.Print("Entrez le nom du contact : ")
 	fmt.Scanln(&nom)
 	fmt.Print("Entrez l'email du contact : ")
 	fmt.Scanln(&email)
+
 	if nom == "" || email == "" {
 		fmt.Println("Nom ou email invalide")
-		Menu()
+		return
 	}
-	
+
 	newContact := &Contact{Nom: nom, Email: email}
-	contacts = append(contacts, newContact)
-	fmt.Println("Contact", nom, "ajouté avec succès")
+	store.Add(newContact)
+	fmt.Println("✅ Contact ajouté avec succès :", nom)
 }
 
 func ListerContacts() {
+	contacts := store.GetAll()
 	if len(contacts) == 0 {
 		fmt.Println("Aucun contact disponible.")
 		return
 	}
 
-	fmt.Println("\n Liste des contacts :")
-	for i, contact := range contacts {
-		fmt.Printf("%d. %s - %s\n", i+1, contact.Nom, contact.Email)
+	fmt.Println("\nListe des contacts :")
+	for i, c := range contacts {
+		fmt.Printf("%d. %s - %s\n", i+1, c.Nom, c.Email)
 	}
 }
 
 func ModifierContact() {
+	contacts := store.GetAll()
 	if len(contacts) == 0 {
 		fmt.Println("Aucun contact à modifier.")
 		return
 	}
 
-	var index int
 	ListerContacts()
+	var index int
 	fmt.Print("Entrez l'index du contact à modifier : ")
 	fmt.Scanln(&index)
 
-	if index < 0 || index >= (len(contacts)+1) {
+	if index < 1 || index > len(contacts) {
 		fmt.Println("Index invalide.")
 		return
 	}
@@ -90,28 +107,39 @@ func ModifierContact() {
 	fmt.Scanln(&nom)
 	fmt.Print("Entrez le nouvel email : ")
 	fmt.Scanln(&email)
-	contacts[index-1].Nom = nom
-	contacts[index-1].Email = email
 
-	fmt.Println("Contact modifié avec succès !")
+	updated := &Contact{Nom: nom, Email: email}
+	err := store.Update(index-1, updated)
+	if err != nil {
+		fmt.Println("Erreur :", err)
+		return
+	}
+
+	fmt.Println("✏️ Contact modifié avec succès !")
 }
 
 func SupprimerContact() {
+	contacts := store.GetAll()
 	if len(contacts) == 0 {
 		fmt.Println("Aucun contact à supprimer.")
 		return
 	}
 
-	var index int
 	ListerContacts()
+	var index int
 	fmt.Print("Entrez l'index du contact à supprimer : ")
 	fmt.Scanln(&index)
 
-	if index < 0 || index >= len(contacts) {
+	if index < 1 || index > len(contacts) {
 		fmt.Println("Index invalide.")
 		return
 	}
 
-	contacts = append(contacts[:index], contacts[index+1:]...)
-	fmt.Println(" Contact supprimé avec succès !")
+	err := store.Delete(index - 1)
+	if err != nil {
+		fmt.Println("Erreur :", err)
+		return
+	}
+
+	fmt.Println("🗑️ Contact supprimé avec succès !")
 }
