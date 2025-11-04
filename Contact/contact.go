@@ -41,17 +41,20 @@ func Menu() {
 	}
 }
 
-func AjouterContact() {
+func AjouterContact(){
 	var nom, email string
 	fmt.Print("Entrez le nom du contact : ")
 	fmt.Scanln(&nom)
 	fmt.Print("Entrez l'email du contact : ")
 	fmt.Scanln(&email)
-
+	if nom == "" || email == "" {
+		fmt.Println("Nom ou email invalide")
+		Menu()
+	}
+	
 	newContact := Contact{Nom: nom, Email: email}
 	contacts = append(contacts, newContact)
-
-	fmt.Println("Contact ajouté avec succès :", nom)
+	fmt.Println("Contact", nom, "ajouté avec succès")
 }
 
 func ListerContacts() {
