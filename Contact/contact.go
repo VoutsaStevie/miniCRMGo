@@ -1,13 +1,144 @@
 package contact
 
-import "fmt"
+import (
+	"errors"
+	"fmt"
+	"strings"
+)
+
 
 type Contact struct {
+	ID    int
 	Nom   string
 	Email string
 }
 
-var contacts []Contact
+
+var contacts = make(map[int]*Contact)
+var nextID = 1
+
+
+func NewContact(nom, email string) (*Contact, error) {
+	nom = strings.TrimSpace(nom)
+	email = strings.TrimSpace(email)
+
+	if nom == "" {
+		return nil, errors.New("le nom ne peut pas être vide")
+	}
+	if !strings.Contains(email, "@") {
+		return nil, errors.New("email invalide")
+	}
+
+	c := &Contact{
+		ID:    nextID,
+		Nom:   nom,
+		Email: email,
+	}
+	nextID++
+	return c, nil
+}
+
+func (c *Contact) Afficher() {
+	fmt.Printf("ID %d : %s - %s\n", c.ID, c.Nom, c.Email)
+}
+
+func (c *Contact) Modifier(nouveauNom, nouvelEmail string) error {
+	nouveauNom = strings.TrimSpace(nouveauNom)
+	nouvelEmail = strings.TrimSpace(nouvelEmail)
+
+	if nouveauNom == "" {
+		return errors.New("le nom ne peut pas être vide")
+	}
+	if !strings.Contains(nouvelEmail, "@") {
+		return errors.New("email invalide")
+	}
+
+	c.Nom = nouveauNom
+	c.Email = nouvelEmail
+	return nil
+}
+
+
+func AjouterContact() {
+	var nom, email string
+	fmt.Print("Entrez le nom du contact : ")
+	fmt.Scanln(&nom)
+	fmt.Print("Entrez l'email du contact : ")
+	fmt.Scanln(&email)
+
+	c, err := NewContact(nom, email)
+	if err != nil {
+		fmt.Println(" Erreur :", err)
+		return
+	}
+
+	contacts[c.ID] = c
+	fmt.Println(" Contact ajouté avec succès (ID:", c.ID, ")")
+}
+
+func ListerContacts() {
+	if len(contacts) == 0 {
+		fmt.Println("Aucun contact disponible.")
+		return
+	}
+
+	fmt.Println("\n Liste des contacts :")
+	for _, c := range contacts {
+		c.Afficher()
+	}
+}
+
+func ModifierContact() {
+	if len(contacts) == 0 {
+		fmt.Println("Aucun contact à modifier.")
+		return
+	}
+
+	ListerContacts()
+	var id int
+	fmt.Print("Entrez l'ID du contact à modifier : ")
+	fmt.Scanln(&id)
+
+	c, exists := contacts[id]
+	if !exists {
+		fmt.Println(" ID invalide.")
+		return
+	}
+
+	var nom, email string
+	fmt.Print("Nouveau nom : ")
+	fmt.Scanln(&nom)
+	fmt.Print("Nouvel email : ")
+	fmt.Scanln(&email)
+
+	if err := c.Modifier(nom, email); err != nil {
+		fmt.Println(" Erreur :", err)
+		return
+	}
+
+	fmt.Println(" Contact modifié avec succès !")
+}
+
+func SupprimerContact() {
+	if len(contacts) == 0 {
+		fmt.Println("Aucun contact à supprimer.")
+		return
+	}
+
+	ListerContacts()
+	var id int
+	fmt.Print("Entrez l'ID du contact à supprimer : ")
+	fmt.Scanln(&id)
+
+	_, exists := contacts[id]
+	if !exists {
+		fmt.Println(" ID invalide.")
+		return
+	}
+
+	delete(contacts, id)
+	fmt.Println(" Contact supprimé avec succès !")
+}
 
 
 func Menu() {
@@ -24,90 +155,19 @@ func Menu() {
 		fmt.Scanln(&choix)
 
 		switch choix {
-			case 1:
-				AjouterContact()
-			case 2:
-				ListerContacts()
-			case 3:
-				ModifierContact()
-			case 4:
-				SupprimerContact()
-			case 5:
-				fmt.Println("A bientôt !")
-				return
-			default:
-				fmt.Println("Choix invalide")
+		case 1:
+			AjouterContact()
+		case 2:
+			ListerContacts()
+		case 3:
+			ModifierContact()
+		case 4:
+			SupprimerContact()
+		case 5:
+			fmt.Println("À bientôt ")
+			return
+		default:
+			fmt.Println("Choix invalide.")
 		}
 	}
-}
-
-func AjouterContact() {
-	var nom, email string
-	fmt.Print("Entrez le nom du contact : ")
-	fmt.Scanln(&nom)
-	fmt.Print("Entrez l'email du contact : ")
-	fmt.Scanln(&email)
-
-	newContact := Contact{Nom: nom, Email: email}
-	contacts = append(contacts, newContact)
-
-	fmt.Println("Contact ajouté avec succès :", nom)
-}
-
-func ListerContacts() {
-	if len(contacts) == 0 {
-		fmt.Println("Aucun contact disponible.")
-		return
-	}
-
-	fmt.Println("\n Liste des contacts :")
-	for i, contact := range contacts {
-		fmt.Printf("%d. %s - %s\n", i+1, contact.Nom, contact.Email)
-	}
-}
-
-func ModifierContact() {
-	if len(contacts) == 0 {
-		fmt.Println("Aucun contact à modifier.")
-		return
-	}
-
-	var index int
-	ListerContacts()
-	fmt.Print("Entrez l'index du contact à modifier : ")
-	fmt.Scanln(&index)
-
-	if index < 0 || index >= len(contacts) {
-		fmt.Println("Index invalide.")
-		return
-	}
-
-	var nom, email string
-	fmt.Print("Entrez le nouveau nom : ")
-	fmt.Scanln(&nom)
-	fmt.Print("Entrez le nouvel email : ")
-	fmt.Scanln(&email)
-
-	contacts[index-1] = Contact{Nom: nom, Email: email}
-	fmt.Println("Contact modifié avec succès !")
-}
-
-func SupprimerContact() {
-	if len(contacts) == 0 {
-		fmt.Println("Aucun contact à supprimer.")
-		return
-	}
-
-	var index int
-	ListerContacts()
-	fmt.Print("Entrez l'index du contact à supprimer : ")
-	fmt.Scanln(&index)
-
-	if index < 0 || index >= len(contacts) {
-		fmt.Println("Index invalide.")
-		return
-	}
-
-	contacts = append(contacts[:index], contacts[index+1:]...)
-	fmt.Println(" Contact supprimé avec succès !")
 }
