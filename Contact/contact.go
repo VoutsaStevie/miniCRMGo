@@ -7,7 +7,7 @@ type Contact struct {
 	Email string
 }
 
-var contacts []Contact
+var contacts []*Contact
 
 
 func Menu() {
@@ -52,7 +52,7 @@ func AjouterContact(){
 		Menu()
 	}
 	
-	newContact := Contact{Nom: nom, Email: email}
+	newContact := &Contact{Nom: nom, Email: email}
 	contacts = append(contacts, newContact)
 	fmt.Println("Contact", nom, "ajouté avec succès")
 }
@@ -80,7 +80,7 @@ func ModifierContact() {
 	fmt.Print("Entrez l'index du contact à modifier : ")
 	fmt.Scanln(&index)
 
-	if index < 0 || index >= len(contacts) {
+	if index < 0 || index >= (len(contacts)+1) {
 		fmt.Println("Index invalide.")
 		return
 	}
@@ -90,8 +90,9 @@ func ModifierContact() {
 	fmt.Scanln(&nom)
 	fmt.Print("Entrez le nouvel email : ")
 	fmt.Scanln(&email)
+	contacts[index-1].Nom = nom
+	contacts[index-1].Email = email
 
-	contacts[index-1] = Contact{Nom: nom, Email: email}
 	fmt.Println("Contact modifié avec succès !")
 }
 
