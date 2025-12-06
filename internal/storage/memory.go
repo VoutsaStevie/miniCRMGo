@@ -1,67 +1,69 @@
 package storage
 
-import "fmt"
+import (
+	"errors"
+	"crm/internal/model"
+)
 
-// MemoryStore est une implémentation CONCRÈTE de l'interface Storer.
-// Elle utilise une map en mémoire pour stocker les données.
-// Elle respecte le contrat Storer car elle possède toutes les méthodes demandées.
-type MemoryStore struct {
-	contacts map[int]*Contact
+var ErrNotFound = errors.New("not found")
+
+type MemoryStorage struct {
+	contacts []model.Contact
 	nextID   int
 }
 
-// NewMemoryStore est un "constructeur" qui initialise proprement notre store.
-func NewMemoryStore() *MemoryStore {
-	return &MemoryStore{
-		contacts: make(map[int]*Contact),
+func NewMemoryStorage() *MemoryStorage {
+	return &MemoryStorage{
+		contacts: []model.Contact{},
 		nextID:   1,
 	}
 }
 
-func (ms *MemoryStore) Add(contact *Contact) error {
-	contact.ID = ms.nextID
-	ms.contacts[contact.ID] = contact
-	ms.nextID++
+func (m *MemoryStorage) Save(c model.Contact) error {
+	if c.ID == 0 {
+		c.ID = m.nextID
+		m.nextID++
+	}
+	m.contacts = append(m.contacts, c)
 	return nil
 }
 
-func (ms *MemoryStore) GetAll() ([]*Contact, error) {
-	// On crée une slice pour éviter de retourner directement
-	// une référence à la map interne.
-	var allContacts []*Contact
-	for _, c := range ms.contacts {
-		allContacts = append(allContacts, c)
-	}
-	return allContacts, nil
+func (m *MemoryStorage) FindAll() []model.Contact {
+	return m.contacts
 }
 
-func (ms *MemoryStore) GetByID(id int) (*Contact, error) {
-	contact, ok := ms.contacts[id]
-	if !ok {
-		return nil, fmt.Errorf("contact avec l'ID %d non trouvé", id)
+func (m *MemoryStorage) FindByID(id int) (model.Contact, bool) {
+	for _, c := range m.contacts {
+		if c.ID == id {
+			return c, true
+		}
 	}
-	return contact, nil
+	return model.Contact{}, false
 }
 
-func (ms *MemoryStore) Update(id int, newName, newEmail string) error {
-	contact, err := ms.GetByID(id)
-	if err != nil {
-		return err // Retourne l'erreur "non trouvé"
+func (m *MemoryStorage) Update(id int, updated model.Contact) error {
+	for i, c := range m.contacts {
+		if c.ID == id {
+			// update only non-empty fields
+			if updated.Name != "" {
+				c.Name = updated.Name
+			}
+			if updated.Email != "" {
+				c.Email = updated.Email
+			}
+			m.contacts[i] = c
+			return nil
+		}
 	}
-
-	if newName != "" {
-		contact.Name = newName
-	}
-	if newEmail != "" {
-		contact.Email = newEmail
-	}
-	return nil
+	return ErrNotFound
 }
 
-func (ms *MemoryStore) Delete(id int) error {
-	if _, ok := ms.contacts[id]; !ok {
-		return fmt.Errorf("contact avec l'ID %d non trouvé", id)
+func (m *MemoryStorage) Delete(id int) error {
+	for i, c := range m.contacts {
+		if c.ID == id {
+			m.contacts = append(m.contacts[:i], m.contacts[i+1:]...)
+			return nil
+		}
 	}
-	delete(ms.contacts, id)
-	return nil
+	return ErrNotFound
 }
