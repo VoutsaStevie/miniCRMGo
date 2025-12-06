@@ -17,13 +17,11 @@ func NewContactHandler(s *service.ContactService) *ContactHandler {
 	return &ContactHandler{s}
 }
 
-// GET /contacts
 func (h *ContactHandler) GetContacts(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(h.service.ListContacts())
 }
 
-// POST /contacts/add
 func (h *ContactHandler) AddContact(w http.ResponseWriter, r *http.Request) {
 	if r.Header.Get("Content-Type") != "application/json" {
 		// fallback pour formulaire POST
@@ -55,7 +53,6 @@ func (h *ContactHandler) AddContact(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(created)
 }
 
-// GET/PUT/DELETE /contacts/{id}
 func (h *ContactHandler) ContactByID(w http.ResponseWriter, r *http.Request) {
 	idStr := strings.TrimPrefix(r.URL.Path, "/contacts/")
 	if idStr == "" || idStr == "/" {
@@ -104,16 +101,11 @@ func (h *ContactHandler) ContactByID(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// --- NOUVEAUX HELPERS pour navigateur ---
-
-// UpdateContactByParams met à jour un contact depuis des paramètres Name/Email
 func (h *ContactHandler) UpdateContactByParams(id int, name, email string) error {
-	// on récupère d'abord le contact existant
 	contact, err := h.service.GetContact(id)
 	if err != nil {
 		return err
 	}
-	// on met à jour les champs non vides
 	if name != "" {
 		contact.Name = name
 	}
@@ -124,7 +116,6 @@ func (h *ContactHandler) UpdateContactByParams(id int, name, email string) error
 }
 
 
-// DeleteContactByID supprime un contact par ID
 func (h *ContactHandler) DeleteContactByID(id int) error {
 	return h.service.DeleteContact(id)
 }

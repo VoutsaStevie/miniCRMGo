@@ -44,7 +44,6 @@ func (m *MemoryStorage) FindByID(id int) (model.Contact, bool) {
 func (m *MemoryStorage) Update(id int, updated model.Contact) error {
 	for i, c := range m.contacts {
 		if c.ID == id {
-			// update only non-empty fields
 			if updated.Name != "" {
 				c.Name = updated.Name
 			}

@@ -11,15 +11,11 @@ import (
 )
 
 func Run() {
-	// stockage mémoire
 	mem := storage.NewMemoryStorage()
-
-	// repository / service / handler
 	repo := repository.NewContactRepository(mem)
 	svc := service.NewContactService(repo)
 	h := handler.NewContactHandler(svc)
 
-	// page d'accueil + gestion complète
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
 		w.Write([]byte(`<!doctype html>
@@ -114,7 +110,6 @@ fetchContacts();
 		h.GetContacts(w, r)
 	})
 
-	// ajouter un contact (POST JSON)
 	http.HandleFunc("/contacts/add", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
@@ -123,7 +118,6 @@ fetchContacts();
 		h.AddContact(w, r)
 	})
 
-	// endpoints navigateur pour update/delete
 	http.HandleFunc("/contacts/update", func(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
@@ -141,7 +135,6 @@ fetchContacts();
 		http.Error(w, "Update failed: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
-	// Indiquer que la mise à jour a réussi
 	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 	w.Write([]byte("Contact mis à jour !"))
 })
@@ -165,7 +158,6 @@ fetchContacts();
 		w.Write([]byte("Contact supprimé !"))
 	})
 
-	// GET/PUT/DELETE /contacts/{id} (existants)
 	http.HandleFunc("/contacts/", func(w http.ResponseWriter, r *http.Request) {
 		h.ContactByID(w, r)
 	})
